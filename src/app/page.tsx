@@ -11,6 +11,11 @@ import {
 import { Combobox } from '@/components/ui/combo-box';
 import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from '@/lib/pt-zod';
 
 interface ComboOptions {
   manufacturer: string | null;
@@ -21,7 +26,7 @@ interface ComboOptions {
   yearOptions: { value: string; label: string }[];
 }
 
-export interface Vehicle {
+interface Vehicle {
   TipoVeiculo: number;
   Valor: string;
   Marca: string;
@@ -32,6 +37,40 @@ export interface Vehicle {
   MesReferencia: string;
   SiglaCombustivel: string;
 }
+
+const formSchema = z.object({
+  ipva: z.union([
+    z.string().refine((value) => parseFloat(value) >= 0, {
+      message: 'Deve ser um número positivo',
+    }).transform((value) => parseFloat(value)),
+    z.number().refine((value) => value >= 0, {
+      message: 'Deve ser um número positivo',
+    }),
+  ]),
+  combustivel: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+  seguro: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+  manutencao: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+
+
+  lavagem: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+  estacionamento: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+  outros: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+  pedagio: z.string().refine((value) => parseFloat(value) >= 0, {
+    message: 'Deve ser um número positivo',
+  }).transform((value) => parseFloat(value)).optional(),
+})
 
 export default function Home() {
   const [comboOptions, setComboOptions] = useState<ComboOptions>({
@@ -44,6 +83,15 @@ export default function Home() {
   });
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+
+  const [total, setTotal] = useState<number>(0);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      ipva: 0,
+    },
+  })
 
   useEffect(() => {
     fetchManufacturers();
@@ -135,9 +183,27 @@ export default function Home() {
     fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${comboOptions.manufacturer}/modelos/${comboOptions.model}/anos/${year}`)
       .then(response => response.json())
       .then(data => {
-        setVehicle(data);
+        const vehicle = data as Vehicle;
+        setVehicle(vehicle);
+        console.log(vehicle)
+        const ipvaValue = parseFloat(vehicle.Valor.replace("R$ ", "").replace(".", "").replace(",", ".")) * 0.04
+        form.setValue('ipva', ipvaValue);
       });
   }
+
+  useEffect(() => {
+    const total =
+      Number(form.getValues('ipva') || 0)
+      + Number(form.getValues('combustivel') || 0) * 12
+      + Number(form.getValues('seguro') || 0) || 0
+      + Number(form.getValues('manutencao') || 0) || 0
+      + Number(form.getValues('estacionamento') || 0) * 12
+      + Number(form.getValues('pedagio') || 0) * 12
+      + Number(form.getValues('lavagem') || 0) * 12
+      + Number(form.getValues('outros') || 0);
+
+    setTotal(total);
+  }, [form.watch()]);
 
   return (
     <Card className='max-w-screen-sm mx-auto mt-8'>
@@ -178,6 +244,125 @@ export default function Home() {
             <p>Selecione um veículo para ver as informações</p>
           )}
         </div>
+
+        <div className='fixed bottom-0 right-0'>
+          <p>Gasto Total Anual: R$ {total.toFixed(2)}</p>
+        </div>
+
+
+        <Form {...form}>
+          <form>
+            <FormField
+              control={form.control}
+              name="ipva"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor estimado do IPVA</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="combustivel"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Gasto mensal com combustível</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="seguro"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor anual do Seguro</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="manutencao"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor anual de Manuteção </FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="estacionamento"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor mensal de Estacionamento </FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pedagio"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor mensal de Pedágio </FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lavagem"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor menal de Limpeza</FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="outros"
+              render={({ field }) => (
+                <FormItem className=''>
+                  <FormLabel>Valor anual com outros gastos </FormLabel>
+                  <FormControl>
+                    <Input type='number' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+
+
       </CardContent>
       <CardFooter>
         <p>Card Footer</p>
