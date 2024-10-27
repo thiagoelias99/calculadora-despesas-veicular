@@ -530,7 +530,7 @@ export default function Home() {
       {
         vehicle && (
           <div>
-            <Card className='mt-4'>
+            <Card className='mt-4 max-w-screen-sm mx-auto'>
               <CardHeader>
                 <CardTitle>Informações do Veículo</CardTitle>
                 <CardDescription>Verifique as informações do veículo</CardDescription>
@@ -548,7 +548,7 @@ export default function Home() {
             </Card>
 
 
-            <Card className='mt-4'>
+            <Card className='mt-4 max-w-screen-sm mx-auto'>
               <CardContent className='mt-4'>
                 <Form {...form}>
                   <form>
