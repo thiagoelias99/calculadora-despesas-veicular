@@ -696,6 +696,8 @@ export default function Home() {
         <HandCoinsIcon />
         <p className='text-muted'>Gasto Total Anual: <strong className='text-xl'>{formatCurrency(total)}</strong></p>
       </div>
+
+      <p className='text-center text-muted-foreground mt-4 text-sm'>Criado por Thiago Elias</p>
     </>
 
   );
