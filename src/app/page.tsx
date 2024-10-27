@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from '@/lib/pt-zod';
 import { formatCurrency } from '@/lib/utils';
+import { HandCoinsIcon } from 'lucide-react';
 
 interface ComboOptions {
   manufacturer: string | null;
@@ -305,7 +306,7 @@ export default function Home() {
   const [total, setTotal] = useState<number>(0);
 
   const [tipoVeiculo, setTipoVeiculo] = useState<string>('carro');
-
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -370,7 +371,6 @@ export default function Home() {
     fetch(`https://parallelum.com.br/fipe/api/v1/${getPluralVeiculo(tipoVeiculo)}/marcas`)
       .then(response => response.json())
       .then(data => {
-        console.log(data)
         const options = data?.map((manufacturer: { nome: string; codigo: string }) => ({
           value: manufacturer.codigo,
           label: manufacturer.nome
@@ -428,14 +428,14 @@ export default function Home() {
       .then(data => {
         const vehicle = data as Vehicle;
         setVehicle(vehicle);
-        const ipvaValue = parseFloat(vehicle.Valor.replace("R$ ", "").replace(".", "").replace(",", ".")) * (Number(estado?.[tipoVeiculo]) || 1) || 0;
+        const ipvaValue = parseFloat(vehicle.Valor.replaceAll("R$ ", "").replaceAll(".", "").replaceAll(",", ".")) * (Number(estado?.[tipoVeiculo]) || 1) || 0;
         form.setValue('ipva', ipvaValue.toFixed(2));
       });
   }
 
   useEffect(() => {
     if (estado && vehicle) {
-      const ipvaValue = parseFloat(vehicle.Valor.replace("R$ ", "").replace(".", "").replace(",", ".")) * (Number(estado?.[tipoVeiculo]) || 1) || 0;
+      const ipvaValue = parseFloat(vehicle.Valor.replaceAll("R$ ", "").replaceAll(".", "").replaceAll(",", ".")) * (Number(estado?.[tipoVeiculo]) || 1) || 0;
       form.setValue('ipva', ipvaValue.toFixed(2));
     }
   }, [estado, vehicle]);
@@ -453,7 +453,6 @@ export default function Home() {
   }, [tipoVeiculo]);
 
   useEffect(() => {
-    // console.log(form.getValues('estacionamento'));
 
     let total2 = 0
     total2 += Number(form.getValues('ipva') || 0)
@@ -551,13 +550,13 @@ export default function Home() {
             <Card className='mt-4 max-w-screen-sm mx-auto'>
               <CardContent className='mt-4'>
                 <Form {...form}>
-                  <form>
+                  <form className='flex flex-col gap-4'>
                     <FormField
                       control={form.control}
                       name="ipva"
                       render={({ field }) => (
                         <FormItem className=''>
-                          <FormLabel>Valor estimado do IPVA</FormLabel>
+                          <FormLabel>Valor estimado do IPVA em {estado?.nome}</FormLabel>
                           <FormControl>
                             <div className='flex gap-2 justify-start items-baseline'>
                               <span>R$ </span>
@@ -600,89 +599,91 @@ export default function Home() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="manutencao"
-                      render={({ field }) => (
-                        <FormItem className=''>
-                          <FormLabel>Valor anual de Manuteção </FormLabel>
-                          <FormControl>
-                            <div className='flex gap-2 justify-start items-baseline'>
-                              <span>R$ </span>
-                              <Input type='number' min={0} step="0.01" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="estacionamento"
-                      render={({ field }) => (
-                        <FormItem className=''>
-                          <FormLabel>Valor mensal de Estacionamento </FormLabel>
-                          <FormControl>
-                            <div className='flex gap-2 justify-start items-baseline'>
-                              <span>R$ </span>
-                              <Input type='number' min={0} step="0.01" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className='contents'>
+                      <FormField
+                        control={form.control}
+                        name="manutencao"
+                        render={({ field }) => (
+                          <FormItem className=''>
+                            <FormLabel>Valor anual de Manuteção </FormLabel>
+                            <FormControl>
+                              <div className='flex gap-2 justify-start items-baseline'>
+                                <span>R$ </span>
+                                <Input type='number' min={0} step="0.01" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="estacionamento"
+                        render={({ field }) => (
+                          <FormItem className=''>
+                            <FormLabel>Valor mensal de Estacionamento </FormLabel>
+                            <FormControl>
+                              <div className='flex gap-2 justify-start items-baseline'>
+                                <span>R$ </span>
+                                <Input type='number' min={0} step="0.01" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="pedagio"
-                      render={({ field }) => (
-                        <FormItem className=''>
-                          <FormLabel>Valor mensal de Pedágio </FormLabel>
-                          <FormControl>
-                            <div className='flex gap-2 justify-start items-baseline'>
-                              <span>R$ </span>
-                              <Input type='number' min={0} step="0.01" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="pedagio"
+                        render={({ field }) => (
+                          <FormItem className=''>
+                            <FormLabel>Valor mensal de Pedágio </FormLabel>
+                            <FormControl>
+                              <div className='flex gap-2 justify-start items-baseline'>
+                                <span>R$ </span>
+                                <Input type='number' min={0} step="0.01" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="lavagem"
-                      render={({ field }) => (
-                        <FormItem className=''>
-                          <FormLabel>Valor menal de Limpeza</FormLabel>
-                          <FormControl>
-                            <div className='flex gap-2 justify-start items-baseline'>
-                              <span>R$ </span>
-                              <Input type='number' min={0} step="0.01" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="lavagem"
+                        render={({ field }) => (
+                          <FormItem className=''>
+                            <FormLabel>Valor mensal de Limpeza</FormLabel>
+                            <FormControl>
+                              <div className='flex gap-2 justify-start items-baseline'>
+                                <span>R$ </span>
+                                <Input type='number' min={0} step="0.01" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <FormField
-                      control={form.control}
-                      name="outros"
-                      render={({ field }) => (
-                        <FormItem className=''>
-                          <FormLabel>Valor anual com outros gastos </FormLabel>
-                          <FormControl>
-                            <div className='flex gap-2 justify-start items-baseline'>
-                              <span>R$ </span>
-                              <Input type='number' min={0} step="0.01" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      <FormField
+                        control={form.control}
+                        name="outros"
+                        render={({ field }) => (
+                          <FormItem className=''>
+                            <FormLabel>Valor anual com outros gastos </FormLabel>
+                            <FormControl>
+                              <div className='flex gap-2 justify-start items-baseline'>
+                                <span>R$ </span>
+                                <Input type='number' min={0} step="0.01" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </form>
                 </Form>
               </CardContent>
@@ -691,7 +692,8 @@ export default function Home() {
         )
       }
 
-      <div className='fixed bottom-0 right-0 left-0 flex flex-row justify-center bg-primary text-primary-foreground py-6 rounded-t-3xl'>
+      <div className='fixed bottom-0 right-0 left-0 flex flex-row gap-4 justify-center bg-primary text-primary-foreground py-6 rounded-t-3xl'>
+        <HandCoinsIcon />
         <p className='text-muted'>Gasto Total Anual: <strong className='text-xl'>{formatCurrency(total)}</strong></p>
       </div>
     </>
