@@ -694,7 +694,10 @@ export default function Home() {
 
       <div className='fixed bottom-0 right-0 left-0 flex flex-row gap-4 justify-center bg-primary text-primary-foreground py-6 rounded-t-3xl'>
         <HandCoinsIcon />
+        <div>
         <p className='text-muted'>Gasto Total Anual: <strong className='text-xl'>{formatCurrency(total)}</strong></p>
+        <p className='text-muted text-xs text-center'>por mês: <strong className='text-base'>{formatCurrency(total/12)}</strong></p>
+        </div>
       </div>
 
       <p className='text-center text-muted-foreground mt-4 text-sm'>Criado por Thiago Elias</p>
